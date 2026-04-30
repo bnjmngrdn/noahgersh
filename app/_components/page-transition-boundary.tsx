@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import { ViewTransition } from "react";
 
-/** Space for fixed header + notch (library uses full-bleed under transparent header). */
+/** Fixed offset below the site header (matches previous layout; avoids drifting paddings). */
 function contentTopPadClass(pathname: string): string {
   if (pathname.startsWith("/studio") || pathname.startsWith("/library")) return "";
-  return "pt-[max(3.75rem,env(safe-area-inset-top,0px)+2.75rem)]";
+  return "pt-[55px]";
 }
 
 export default function PageTransitionBoundary({
@@ -19,7 +19,7 @@ export default function PageTransitionBoundary({
 
   if (isStudio) {
     return (
-      <div className="flex min-h-screen w-full flex-1 flex-col">{children}</div>
+      <div className="flex min-h-dvh w-full flex-1 flex-col">{children}</div>
     );
   }
 
@@ -28,7 +28,7 @@ export default function PageTransitionBoundary({
   return (
     <ViewTransition>
       <div
-        className={`flex w-full flex-1 flex-col ${topPad}`}
+        className={`flex min-h-0 w-full flex-1 flex-col ${topPad}`}
         style={{ viewTransitionName: "page-content" }}
       >
         {children}
