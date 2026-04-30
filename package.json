@@ -2,6 +2,9 @@
   "name": "noahgersh",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -18,11 +21,12 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.10",
+    "@sanity/client": "^7.22.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@sanity/client": "^7.22.0",
     "dotenv": "^16.4.7",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
