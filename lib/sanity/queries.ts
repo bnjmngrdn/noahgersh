@@ -23,8 +23,9 @@ export const libraryQuery = /* groq */ `
 `;
 
 export const projectsQuery = /* groq */ `
-  *[_type == "project" && defined(slug.current) && !(_id in path("drafts.**"))] | order(year desc) {
+  *[_type == "project" && !(_id in path("drafts.**"))] | order(year desc) {
     "id": slug.current,
+    "sanityDocumentId": _id,
     year,
     artist,
     title,

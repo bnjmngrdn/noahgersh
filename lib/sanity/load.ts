@@ -36,7 +36,8 @@ function mapLibraryRow(r: RawLibraryRow): LibraryItem | null {
 }
 
 type RawProjectRow = {
-  id: string;
+  id: string | null;
+  sanityDocumentId?: string;
   year: string;
   artist: string;
   title: string;
@@ -49,7 +50,18 @@ type RawProjectRow = {
   inspiration: InspirationItem[] | null;
 };
 
-function mapProjectRow(r: RawProjectRow): Project {
+function projectIdFromRow(r: RawProjectRow): string | null {
+  const slug = r.id?.trim();
+  if (slug) return slug;
+  const raw = r.sanityDocumentId?.trim();
+  if (!raw) return null;
+  if (raw.startsWith("project.")) return raw.slice("project.".length);
+  return raw;
+}
+
+function mapProjectRow(r: RawProjectRow): Project | null {
+  const id = projectIdFromRow(r);
+  if (!id) return null;
   const inspiration = (r.inspiration ?? []).filter(
     (i): i is InspirationItem =>
       Boolean(i?.libraryItemId && typeof i.libraryItemId === "string"),
@@ -64,7 +76,7 @@ function mapProjectRow(r: RawProjectRow): Project {
     showInspiration: m.showInspiration ?? defaultProjectModules.showInspiration,
   };
   return {
-    id: r.id,
+    id,
     year: r.year,
     artist: r.artist,
     title: r.title,
@@ -89,7 +101,9 @@ export async function getLibraryItems(): Promise<LibraryItem[]> {
 export async function getProjects(): Promise<Project[]> {
   if (!isSanityConfigured()) return staticProjects;
   const rows = await sanityFetch<RawProjectRow[]>(projectsQuery);
-  return rows.map(mapProjectRow);
+  return rows
+    .map(mapProjectRow)
+    .filter((p): p is Project => p !== null);
 }
 
 type AboutFromSanity = { body: PortableTextBlock[] } | null;
