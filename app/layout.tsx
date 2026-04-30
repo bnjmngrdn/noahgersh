@@ -21,6 +21,9 @@ const neueMontreal = localFont({
 export const metadata: Metadata = {
   title: "Noah Gersh",
   description: "Noah Gersh",
+  other: {
+    "build-sha": process.env.COMMIT_REF ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "dev",
+  },
 };
 
 export default function RootLayout({
