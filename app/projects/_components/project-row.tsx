@@ -14,7 +14,7 @@ import type { LibraryItem } from "../../library/_data";
 import { useAudioPlayback } from "../../_components/audio-playback-provider";
 
 const CONTENT_CONTAINER =
-  "mx-auto w-full max-w-[900px] px-8";
+  "mx-auto w-full max-w-[900px] px-4 sm:px-8";
 
 function formatTrackDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return "";
@@ -40,11 +40,22 @@ export default function ProjectRow({
         onClick={() => setOpen((v) => !v)}
         className="relative block w-full py-3 text-left"
       >
-        <span className="absolute left-8 top-3 tabular-nums text-black/60">
+        <span className="pointer-events-none absolute left-4 top-3 hidden tabular-nums text-black/60 sm:left-8 md:block">
           {project.year}
         </span>
         <div className={CONTENT_CONTAINER}>
-          <div className="grid grid-cols-[150px_minmax(0,1fr)] items-baseline gap-x-6">
+          <div className="flex flex-col gap-1 md:hidden">
+            <span className="tabular-nums text-[11px] text-black/60">
+              {project.year}
+            </span>
+            <span className="min-w-0 font-medium uppercase tracking-[0.02em]">
+              {project.artist}
+            </span>
+            <span className="min-w-0 font-medium uppercase tracking-[0.02em]">
+              &ldquo;{project.title}&rdquo;
+            </span>
+          </div>
+          <div className="hidden md:grid md:grid-cols-[150px_minmax(0,1fr)] md:items-baseline md:gap-x-6">
             <span className="min-w-0 font-medium uppercase tracking-[0.02em]">
               {project.artist}
             </span>
@@ -118,8 +129,14 @@ function ArtworkSection({ src, alt }: { src: string; alt: string }) {
   return (
     <section>
       <SectionLabel>ARTWORK</SectionLabel>
-      <div className="relative aspect-square w-[260px] overflow-hidden bg-black/5">
-        <Image src={src} alt={alt} fill className="object-cover" sizes="260px" />
+      <div className="relative aspect-square w-full max-w-[260px] overflow-hidden bg-black/5">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          sizes="(max-width: 380px) 100vw, 260px"
+        />
       </div>
     </section>
   );
@@ -129,7 +146,7 @@ function ArtworkPlaceholder({ title }: { title: string }) {
   return (
     <section>
       <SectionLabel>ARTWORK</SectionLabel>
-      <div className="flex aspect-square w-[260px] items-center justify-center bg-black/[0.04] text-black/40">
+      <div className="flex aspect-square w-full max-w-[260px] items-center justify-center bg-black/[0.04] text-black/40">
         <span className="text-[11px] tracking-[0.05em]">{title}</span>
       </div>
     </section>
@@ -197,7 +214,7 @@ function TracklistRow({ track: t }: { track: Track }) {
   }, [t.duration, url]);
 
   return (
-    <li className="flex items-baseline gap-6 py-2">
+    <li className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:gap-6">
       <button
         type="button"
         disabled={!canPlay}
@@ -224,7 +241,7 @@ function CreditsSection({ credits }: { credits: Credit[] }) {
         {credits.map((c) => (
           <li
             key={c.name}
-            className="grid grid-cols-[160px_minmax(0,1fr)] items-baseline gap-x-6 py-1.5"
+            className="grid grid-cols-1 gap-y-0.5 py-1.5 sm:grid-cols-[160px_minmax(0,1fr)] sm:items-baseline sm:gap-x-6 sm:gap-y-0"
           >
             <span className="font-medium">{c.name}</span>
             <span className="text-black/50">{c.roles}</span>
@@ -309,7 +326,7 @@ function InspirationSection({
     <section>
       <SectionLabel>INSPIRATION</SectionLabel>
       <SectionRule />
-      <div className="grid grid-cols-3 gap-x-4 pt-4">
+      <div className="grid grid-cols-1 gap-6 pt-4 sm:grid-cols-2 sm:gap-x-4 md:grid-cols-3">
         {items.map((insp) => {
           const lib = libraryItems.find((l) => l.id === insp.libraryItemId);
           if (!lib) return null;

@@ -114,7 +114,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-8 py-13"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-13"
       role="dialog"
       aria-modal="true"
       aria-labelledby="library-lightbox-title"
@@ -139,8 +139,11 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           pointerEvents: visible ? "auto" : "none",
         }}
       >
-        <div className="flex items-start justify-between gap-6 border-b border-black/15 px-8 py-3">
-          <h2 id="library-lightbox-title" className="text-[12px] font-medium text-black">
+        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-black/15 px-4 py-3 sm:gap-6 sm:px-8">
+          <h2
+            id="library-lightbox-title"
+            className="min-w-0 flex-1 break-words text-[12px] font-medium text-black"
+          >
             {displayItem.title}
           </h2>
           <button
@@ -153,7 +156,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           </button>
         </div>
 
-        <div className="space-y-14 px-8 pb-13 pt-6">
+        <div className="space-y-14 px-4 pb-13 pt-6 sm:px-8">
           <div className="w-full overflow-hidden bg-black/[0.04]">
             {displayItem.type === "image" && (
               <div className="flex max-h-[min(55vh,560px)] w-full items-center justify-center">
@@ -176,7 +179,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
               />
             )}
             {displayItem.type === "audio" && (
-              <div className="px-8 py-8">
+              <div className="px-0 py-8 sm:px-4">
                 <audio
                   key={displayItem.src}
                   src={displayItem.src}
