@@ -33,10 +33,10 @@ export default function RootLayout({
       lang="en"
       className={`${neueMontreal.variable} h-full antialiased`}
     >
-      <body className="min-h-screen font-sans text-[12px] leading-[1.45] text-black">
+      <body className="min-h-dvh font-sans text-[12px] leading-[1.45] text-black">
         <AudioPlaybackProvider>
           <SiteHeader />
-          <main className="flex min-h-screen w-full flex-col">
+          <main className="flex min-h-dvh w-full flex-col">
             <PageTransitionBoundary>{children}</PageTransitionBoundary>
           </main>
         </AudioPlaybackProvider>

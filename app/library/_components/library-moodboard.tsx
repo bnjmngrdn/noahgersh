@@ -32,6 +32,8 @@ function getColumnsForWidth(w: number): 1 | 2 | 3 {
 // Scroll behavior.
 const BASE_SPEED = 0.6;
 const WHEEL_BOOST = 0.18;
+/** Touch drag → velocity (mobile; wheel does not fire for finger scroll). */
+const TOUCH_BOOST = 0.045;
 const DECAY_PER_FRAME = 0.93;
 
 type Aspect = number; // width / height
@@ -161,6 +163,30 @@ export default function LibraryMoodboard({
     };
   }, [items]);
 
+  // Keep the page from scrolling on mobile; motion is transform-only inside the viewport.
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = {
+      overflow: html.style.overflow,
+      overscroll: html.style.overscrollBehavior,
+    };
+    const prevBody = {
+      overflow: body.style.overflow,
+      overscroll: body.style.overscrollBehavior,
+    };
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    return () => {
+      html.style.overflow = prevHtml.overflow;
+      html.style.overscrollBehavior = prevHtml.overscroll;
+      body.style.overflow = prevBody.overflow;
+      body.style.overscrollBehavior = prevBody.overscroll;
+    };
+  }, []);
+
   // Compute layout: width per column, item heights, column placement, cycle height.
   const layout = useMemo(() => {
     const { width, columns } = size;
@@ -209,6 +235,7 @@ export default function LibraryMoodboard({
 
     let rafId = 0;
     let lastTime = performance.now();
+    let lastTouchY: number | null = null;
 
     function tick(now: number) {
       const dt = Math.min((now - lastTime) / 16.667, 4);
@@ -234,12 +261,38 @@ export default function LibraryMoodboard({
       velocityRef.current += e.deltaY * WHEEL_BOOST;
     }
 
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length !== 1) return;
+      lastTouchY = e.touches[0].clientY;
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (e.touches.length !== 1 || lastTouchY === null) return;
+      e.preventDefault();
+      const y = e.touches[0].clientY;
+      const dy = lastTouchY - y;
+      lastTouchY = y;
+      velocityRef.current += dy * TOUCH_BOOST;
+    }
+
+    function onTouchEnd() {
+      lastTouchY = null;
+    }
+
     viewport.addEventListener("wheel", onWheel, { passive: false });
+    viewport.addEventListener("touchstart", onTouchStart, { passive: true });
+    viewport.addEventListener("touchmove", onTouchMove, { passive: false });
+    viewport.addEventListener("touchend", onTouchEnd);
+    viewport.addEventListener("touchcancel", onTouchEnd);
     if (!reduced) rafId = requestAnimationFrame(tick);
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
       viewport.removeEventListener("wheel", onWheel);
+      viewport.removeEventListener("touchstart", onTouchStart);
+      viewport.removeEventListener("touchmove", onTouchMove);
+      viewport.removeEventListener("touchend", onTouchEnd);
+      viewport.removeEventListener("touchcancel", onTouchEnd);
     };
   }, [layout.cycleHeight]);
 
@@ -247,31 +300,33 @@ export default function LibraryMoodboard({
     size.columns === 1 ? "100vw" : size.columns === 2 ? "50vw" : "33vw";
 
   return (
-    <div
-      ref={viewportRef}
-      className="relative flex-1 overflow-hidden select-none"
-      aria-label="Library moodboard"
-    >
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
-        ref={trackRef}
-        className="absolute inset-x-0 top-0 will-change-transform"
-        style={{ height: layout.cycleHeight * 2 }}
+        ref={viewportRef}
+        className="relative min-h-0 flex-1 touch-none overflow-hidden overscroll-none select-none"
+        aria-label="Library moodboard"
       >
-        {layout.itemWidth > 0 &&
-          // Render each item twice (offset by cycleHeight) for seamless looping.
-          [0, 1].map((copy) =>
-            layout.placements.map((p) => (
-              <ItemBlock
-                key={`${copy}-${p.index}`}
-                placement={p}
-                itemWidth={layout.itemWidth}
-                yOffset={copy * layout.cycleHeight}
-                sizesAttr={sizesAttr}
-                eager={copy === 0 && p.index < 4}
-                onOpen={() => openLightbox(p.index)}
-              />
-            )),
-          )}
+        <div
+          ref={trackRef}
+          className="absolute inset-x-0 top-0 will-change-transform"
+          style={{ height: layout.cycleHeight * 2 }}
+        >
+          {layout.itemWidth > 0 &&
+            // Render each item twice (offset by cycleHeight) for seamless looping.
+            [0, 1].map((copy) =>
+              layout.placements.map((p) => (
+                <ItemBlock
+                  key={`${copy}-${p.index}`}
+                  placement={p}
+                  itemWidth={layout.itemWidth}
+                  yOffset={copy * layout.cycleHeight}
+                  sizesAttr={sizesAttr}
+                  eager={copy === 0 && p.index < 4}
+                  onOpen={() => openLightbox(p.index)}
+                />
+              )),
+            )}
+        </div>
       </div>
       <LibraryLightbox
         item={lightboxIndex !== null ? items[lightboxIndex] : null}

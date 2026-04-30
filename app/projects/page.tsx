@@ -11,7 +11,7 @@ export default async function ProjectsPage() {
   ]);
 
   return (
-    <div className="w-full py-13">
+    <div className="w-full pb-13">
       {projects.map((project) => (
         <ProjectRow
           key={project.id}
