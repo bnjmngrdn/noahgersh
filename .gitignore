@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Raw capture > GitHub 100MB limit — keep locally or serve via Sanity/CDN
+public/content/2025-09-16_224442_000.wav
+
 # vercel
 .vercel
 
