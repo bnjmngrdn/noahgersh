@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { getHomepageFeedItems } from "@/lib/sanity/load";
+import HomeFeed from "./_components/home-feed";
 
-export default function Home() {
-  redirect("/about");
+export default async function Home() {
+  const items = await getHomepageFeedItems();
+  return <HomeFeed items={items} />;
 }

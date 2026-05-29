@@ -3,6 +3,8 @@ export type LibraryItemCommon = {
   title: string;
   description: string;
   tags: string[];
+  createdAt?: string;
+  showOnHomepage?: boolean;
 };
 
 export type LibraryItem =
@@ -19,6 +21,10 @@ export type LibraryItem =
   | (LibraryItemCommon & {
       type: "audio";
       src: string;
+    })
+  | (LibraryItemCommon & {
+      type: "youtube";
+      videoId: string;
     });
 
 /** Index in `items`, or -1 if unknown id. */
@@ -35,6 +41,8 @@ export const libraryItems: LibraryItem[] = [
     title: "IMG_1166",
     description: "Still from the reference roll — warm interior, late afternoon.",
     tags: ["photo", "interior", "reference"],
+    createdAt: "2024-06-01T12:00:00.000Z",
+    showOnHomepage: true,
   },
   {
     id: "honey-i-feeling-final",
@@ -51,6 +59,8 @@ export const libraryItems: LibraryItem[] = [
     title: "IMG_9541",
     description: "Location texture — grain and color study.",
     tags: ["photo", "texture", "outdoor"],
+    createdAt: "2024-05-15T12:00:00.000Z",
+    showOnHomepage: true,
   },
   {
     id: "img-1270",

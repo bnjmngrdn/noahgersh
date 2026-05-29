@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import type { LibraryItem } from "../_data";
+import { youtubeEmbedUrl } from "@/lib/youtube";
 
 const EASE = "ease-in-out";
 const DURATION_MS = 360;
@@ -27,13 +29,16 @@ export default function LibraryLightbox({ item, onClose }: Props) {
 
   const [displayItem, setDisplayItem] = useState<LibraryItem | null>(null);
   const [visible, setVisible] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const reduceMotion = useSyncExternalStore(
     subscribePrefersReducedMotion,
     getPrefersReducedMotion,
     () => false,
   );
-
-  /* Open/close animation state — synchronous updates coordinate enter/exit timing. */
   /* eslint-disable react-hooks/set-state-in-effect -- transition state machine */
   useEffect(() => {
     if (item) {
@@ -103,7 +108,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
     }
   }, [visible, displayItem]);
 
-  if (!displayItem) return null;
+  if (!displayItem || !mounted) return null;
 
   const duration = reduceMotion ? 0 : DURATION_MS;
   const transitionStyle = {
@@ -112,12 +117,13 @@ export default function LibraryLightbox({ item, onClose }: Props) {
     transitionTimingFunction: duration ? EASE : "linear",
   } as const;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-13"
       role="dialog"
       aria-modal="true"
       aria-labelledby="library-lightbox-title"
+      data-library-lightbox=""
     >
       <button
         type="button"
@@ -189,6 +195,17 @@ export default function LibraryLightbox({ item, onClose }: Props) {
                 />
               </div>
             )}
+            {displayItem.type === "youtube" && (
+              <div className="relative aspect-video w-full">
+                <iframe
+                  src={youtubeEmbedUrl(displayItem.videoId)}
+                  title={displayItem.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full border-0"
+                />
+              </div>
+            )}
           </div>
 
           <section>
@@ -216,6 +233,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           </section>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

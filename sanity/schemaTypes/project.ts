@@ -1,4 +1,5 @@
 import type { SchemaTypeDefinition } from "sanity";
+import { orderRankField, orderRankOrdering } from "@sanity/orderable-document-list";
 import { TitleWithAutoSlug } from "../components/title-with-auto-slug";
 
 type ProjectParent = {
@@ -21,6 +22,7 @@ const project: SchemaTypeDefinition = {
   title: "Project",
   type: "document",
   fields: [
+    orderRankField({ type: "project" }),
     {
       name: "title",
       type: "string",
@@ -162,13 +164,7 @@ const project: SchemaTypeDefinition = {
       };
     },
   },
-  orderings: [
-    {
-      title: "Year, newest first",
-      name: "yearDesc",
-      by: [{ field: "year", direction: "desc" }],
-    },
-  ],
+  orderings: [orderRankOrdering],
 };
 
 export default project;

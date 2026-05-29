@@ -1,7 +1,9 @@
 import type { StructureResolver } from "sanity/structure";
+import { orderableDocumentListDeskItem } from "@sanity/orderable-document-list";
 import { ABOUT_PAGE_DOCUMENT_ID } from "./constants";
+import { libraryDocumentListDeskItem } from "./library-document-list-desk-item";
 
-export const structure: StructureResolver = (S) =>
+export const structure: StructureResolver = (S, context) =>
   S.list()
     .title("Website")
     .items([
@@ -14,7 +16,12 @@ export const structure: StructureResolver = (S) =>
             .documentId(ABOUT_PAGE_DOCUMENT_ID),
         ),
       S.divider(),
-      S.documentTypeListItem("libraryItem").title("Library items"),
-      S.documentTypeListItem("project").title("Projects"),
+      libraryDocumentListDeskItem({ S, context }),
+      orderableDocumentListDeskItem({
+        type: "project",
+        title: "Projects",
+        S,
+        context,
+      }),
       S.documentTypeListItem("tag").title("Tags"),
     ]);

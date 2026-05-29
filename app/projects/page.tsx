@@ -1,5 +1,5 @@
 import { getLibraryItems, getProjects } from "@/lib/sanity/load";
-import ProjectRow from "./_components/project-row";
+import ProjectsList from "./_components/projects-list";
 
 /** Always fetch fresh projects on each request (avoids stale prerender after CMS / deploy changes). */
 export const revalidate = 0;
@@ -10,15 +10,5 @@ export default async function ProjectsPage() {
     getLibraryItems(),
   ]);
 
-  return (
-    <div className="w-full pb-13">
-      {projects.map((project) => (
-        <ProjectRow
-          key={project.id}
-          project={project}
-          libraryItems={libraryItems}
-        />
-      ))}
-    </div>
-  );
+  return <ProjectsList projects={projects} libraryItems={libraryItems} />;
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AudioPlaybackProvider } from "./_components/audio-playback-provider";
+import { ProjectsFilterProvider } from "./_components/projects-artist-filter";
+import { LibrarySearchProvider } from "./_components/library-search";
 import SiteHeader from "./_components/site-header";
 import PageTransitionBoundary from "./_components/page-transition-boundary";
 
@@ -38,10 +40,14 @@ export default function RootLayout({
     >
       <body className="min-h-dvh font-sans text-[12px] leading-[1.45] text-black">
         <AudioPlaybackProvider>
-          <SiteHeader />
-          <main className="flex min-h-dvh w-full flex-col">
-            <PageTransitionBoundary>{children}</PageTransitionBoundary>
-          </main>
+          <ProjectsFilterProvider>
+            <LibrarySearchProvider>
+              <SiteHeader />
+              <main className="flex min-h-dvh w-full flex-col">
+                <PageTransitionBoundary>{children}</PageTransitionBoundary>
+              </main>
+            </LibrarySearchProvider>
+          </ProjectsFilterProvider>
         </AudioPlaybackProvider>
       </body>
     </html>

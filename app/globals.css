@@ -46,11 +46,24 @@ body {
   from { opacity: 0; }
 }
 
+@keyframes mini-player-title-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.mini-player-title-scroll {
+  animation: mini-player-title-scroll 10s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
+  }
+
+  .mini-player-title-scroll {
+    animation: none;
   }
 }

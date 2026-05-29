@@ -3,8 +3,16 @@
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  LIBRARY_SEARCH_FADE_CLASS,
+  matchesLibrarySearch,
+  LibrarySearchPreview,
+  LibrarySearchVeil,
+  useLibrarySearch,
+} from "../../_components/library-search";
 import { getLibraryItemIndexById, type LibraryItem } from "../_data";
 import LibraryLightbox from "./library-lightbox";
+import { youtubeThumbnailUrl } from "@/lib/youtube";
 
 // Audio cards have no intrinsic aspect ratio — pin them to a fixed
 // width/height ratio so their block stays compact and readable.
@@ -38,13 +46,21 @@ const DECAY_PER_FRAME = 0.93;
 
 type Aspect = number; // width / height
 
-function indexFromOpenParam(
+function idFromOpenParam(
   open: string | undefined,
   items: LibraryItem[],
-): number | null {
+): string | null {
   if (!open) return null;
   const i = getLibraryItemIndexById(items, open);
-  return i >= 0 ? i : null;
+  return i >= 0 ? items[i].id : null;
+}
+
+function initialAspects(items: LibraryItem[]): (Aspect | null)[] {
+  return items.map((it) => {
+    if (it.type === "audio") return AUDIO_ASPECT_RATIO;
+    if (it.type === "youtube") return FALLBACK_VIDEO_ASPECT;
+    return null;
+  });
 }
 
 export default function LibraryMoodboard({
@@ -56,41 +72,66 @@ export default function LibraryMoodboard({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { gridQuery, searchPhase, signalGridReady } = useLibrarySearch();
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const yRef = useRef(0);
   const velocityRef = useRef(BASE_SPEED);
 
+  const visibleItems = useMemo(
+    () => items.filter((item) => matchesLibrarySearch(item, gridQuery)),
+    [items, gridQuery],
+  );
+
+  const gridVisible = searchPhase === "grid";
+
   // Aspect ratios per item index (width / height). Measured client-side.
   const [aspects, setAspects] = useState<(Aspect | null)[]>(() =>
-    items.map((it) => {
-      if (it.type === "audio") return AUDIO_ASPECT_RATIO;
-      return null;
-    }),
+    initialAspects(items),
   );
 
   const [size, setSize] = useState({ width: 0, columns: 3 as 1 | 2 | 3 });
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(() =>
-    indexFromOpenParam(initialOpenLibraryId, items),
+  const [lightboxId, setLightboxId] = useState<string | null>(() =>
+    idFromOpenParam(initialOpenLibraryId, items),
   );
 
   useEffect(() => {
-    // Sync ?open= deep links when search params or fetched items change.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional URL → UI sync
-    setLightboxIndex(indexFromOpenParam(initialOpenLibraryId, items));
+    if (!gridVisible) velocityRef.current = 0;
+  }, [gridVisible]);
+
+  useEffect(() => {
+    setAspects(initialAspects(visibleItems));
+    yRef.current = 0;
+    if (trackRef.current) {
+      trackRef.current.style.transform = "translate3d(0, 0, 0)";
+    }
+  }, [visibleItems]);
+
+  useEffect(() => {
+    setLightboxId(idFromOpenParam(initialOpenLibraryId, items));
   }, [initialOpenLibraryId, items]);
 
+  useEffect(() => {
+    if (
+      lightboxId &&
+      !visibleItems.some((item) => item.id === lightboxId)
+    ) {
+      setLightboxId(null);
+      router.replace(pathname, { scroll: false });
+    }
+  }, [visibleItems, lightboxId, pathname, router]);
+
   const openLightbox = (index: number) => {
-    setLightboxIndex(index);
-    const id = items[index].id;
-    router.replace(
-      `${pathname}?open=${encodeURIComponent(id)}`,
-      { scroll: false },
-    );
+    const id = visibleItems[index]?.id;
+    if (!id) return;
+    setLightboxId(id);
+    router.replace(`${pathname}?open=${encodeURIComponent(id)}`, {
+      scroll: false,
+    });
   };
 
   const closeLightbox = () => {
-    setLightboxIndex(null);
+    setLightboxId(null);
     router.replace(pathname, { scroll: false });
   };
 
@@ -111,7 +152,7 @@ export default function LibraryMoodboard({
   // Measure aspect ratios for images / videos.
   useEffect(() => {
     let cancelled = false;
-    items.forEach((item, i) => {
+    visibleItems.forEach((item, i) => {
       if (item.type === "image") {
         const img = new window.Image();
         img.onload = () => {
@@ -161,7 +202,7 @@ export default function LibraryMoodboard({
     return () => {
       cancelled = true;
     };
-  }, [items]);
+  }, [visibleItems]);
 
   // Keep the page from scrolling on mobile; motion is transform-only inside the viewport.
   useEffect(() => {
@@ -200,7 +241,7 @@ export default function LibraryMoodboard({
     // Adjacent items therefore corner-touch diagonally just like the original
     // uniform-height zigzag, but each item now contributes its own height.
     let runningY = 0;
-    const placements: Placement[] = items.map((item, i) => {
+    const placements: Placement[] = visibleItems.map((item, i) => {
       const aspect =
         aspects[i] ??
         (item.type === "audio"
@@ -219,7 +260,47 @@ export default function LibraryMoodboard({
     // copy of the items spans this height, so translating by it loops cleanly.
     const cycleHeight = runningY;
     return { itemWidth, cycleHeight, placements };
-  }, [size, aspects, items]);
+  }, [size, aspects, visibleItems]);
+
+  useEffect(() => {
+    if (searchPhase !== "loading") return;
+
+    let cancelled = false;
+    const started = performance.now();
+
+    const tryReady = () => {
+      if (cancelled) return;
+
+      const elapsed = performance.now() - started;
+      const layoutReady = layout.cycleHeight > 0 || visibleItems.length === 0;
+      const viewportReady = size.width > 0;
+      const aspectsReady =
+        visibleItems.length === 0 ||
+        aspects.length === visibleItems.length &&
+          aspects.every((aspect) => aspect !== null);
+      const minWait = elapsed >= 120;
+      const maxWait = elapsed >= 1200;
+
+      if ((layoutReady && viewportReady && aspectsReady && minWait) || maxWait) {
+        signalGridReady();
+        return;
+      }
+
+      requestAnimationFrame(tryReady);
+    };
+
+    requestAnimationFrame(tryReady);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    searchPhase,
+    layout.cycleHeight,
+    size.width,
+    visibleItems.length,
+    aspects,
+    signalGridReady,
+  ]);
 
   // Auto-scroll loop.
   useEffect(() => {
@@ -303,14 +384,20 @@ export default function LibraryMoodboard({
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
         ref={viewportRef}
-        className="relative min-h-0 flex-1 touch-none overflow-hidden overscroll-none select-none"
+        className="relative min-h-0 flex-1 touch-none overflow-hidden overscroll-none bg-white select-none"
         aria-label="Library moodboard"
       >
         <div
-          ref={trackRef}
-          className="absolute inset-x-0 top-0 will-change-transform"
+          className={`absolute inset-x-0 top-0 ${LIBRARY_SEARCH_FADE_CLASS} ${
+            gridVisible ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
           style={{ height: layout.cycleHeight * 2 }}
         >
+          <div
+            ref={trackRef}
+            className="absolute inset-x-0 top-0 will-change-transform"
+            style={{ height: layout.cycleHeight * 2 }}
+          >
           {layout.itemWidth > 0 &&
             // Render each item twice (offset by cycleHeight) for seamless looping.
             [0, 1].map((copy) =>
@@ -326,10 +413,17 @@ export default function LibraryMoodboard({
                 />
               )),
             )}
+          </div>
         </div>
+        <LibrarySearchVeil />
+        <LibrarySearchPreview />
       </div>
       <LibraryLightbox
-        item={lightboxIndex !== null ? items[lightboxIndex] : null}
+        item={
+          lightboxId
+            ? visibleItems.find((item) => item.id === lightboxId) ?? null
+            : null
+        }
         onClose={closeLightbox}
       />
     </div>
@@ -396,6 +490,16 @@ function ItemBlock({
             playsInline
             preload="metadata"
             className="pointer-events-none h-full w-full object-cover"
+          />
+        )}
+        {item.type === "youtube" && (
+          <Image
+            src={youtubeThumbnailUrl(item.videoId)}
+            alt={item.title}
+            fill
+            className="pointer-events-none object-cover"
+            sizes={sizesAttr}
+            priority={eager}
           />
         )}
         {item.type === "audio" && (

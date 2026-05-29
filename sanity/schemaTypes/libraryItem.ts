@@ -20,17 +20,55 @@ const libraryItem: SchemaTypeDefinition = {
       validation: (Rule) => Rule.required(),
     },
     {
+      name: "showOnHomepage",
+      title: "Show on homepage",
+      type: "boolean",
+      description: "When enabled, this item appears on the homepage feed (newest first).",
+      initialValue: false,
+    },
+    {
+      name: "mediaSource",
+      title: "Media source",
+      type: "string",
+      options: {
+        list: [
+          { title: "Upload", value: "upload" },
+          { title: "YouTube", value: "youtube" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "upload",
+    },
+    {
+      name: "youtubeUrl",
+      title: "YouTube URL",
+      type: "url",
+      description: "Paste a YouTube watch, embed, or youtu.be link.",
+      hidden: ({ parent }) =>
+        (parent as { mediaSource?: string } | undefined)?.mediaSource === "upload",
+      validation: (Rule) =>
+        Rule.custom((value, context) => {
+          const source = (context.parent as { mediaSource?: string } | undefined)
+            ?.mediaSource;
+          if (source !== "youtube") return true;
+          return value ? true : "YouTube URL is required";
+        }),
+    },
+    {
       name: "media",
       title: "Media",
       type: "file",
       description:
         "Upload an image, video, or audio file. The site picks the player from the file type automatically.",
+      hidden: ({ parent }) =>
+        (parent as { mediaSource?: string } | undefined)?.mediaSource === "youtube",
       options: {
         accept: "image/*,video/*,audio/*",
       },
       validation: (Rule) =>
         Rule.custom((mediaField, context) => {
           const p = context.parent as Record<string, unknown> | undefined;
+          if (p?.mediaSource === "youtube") return true;
           const hasLegacy =
             !!(p?.image as { asset?: unknown } | undefined)?.asset ||
             !!(p?.videoFile as { asset?: unknown } | undefined)?.asset ||
@@ -38,13 +76,6 @@ const libraryItem: SchemaTypeDefinition = {
           if (hasLegacy) return true;
           return !!mediaField || "Upload a media file";
         }),
-    },
-    {
-      name: "alt",
-      title: "Alt text",
-      type: "string",
-      description:
-        "For images: short description for screen readers. Optional for video/audio.",
     },
     {
       name: "mediaType",
@@ -85,7 +116,6 @@ const libraryItem: SchemaTypeDefinition = {
       name: "description",
       type: "text",
       rows: 4,
-      validation: (Rule) => Rule.required(),
     },
     {
       name: "tags",
@@ -96,6 +126,8 @@ const libraryItem: SchemaTypeDefinition = {
   preview: {
     select: {
       title: "title",
+      showOnHomepage: "showOnHomepage",
+      mediaSource: "mediaSource",
       hasLegacyImage: "image.asset",
       hasLegacyVideo: "videoFile.asset",
       hasLegacyAudio: "audioFile.asset",
@@ -104,6 +136,8 @@ const libraryItem: SchemaTypeDefinition = {
     },
     prepare(selection: {
       title?: string;
+      showOnHomepage?: boolean;
+      mediaSource?: string;
       hasLegacyImage?: unknown;
       hasLegacyVideo?: unknown;
       hasLegacyAudio?: unknown;
@@ -112,6 +146,8 @@ const libraryItem: SchemaTypeDefinition = {
     }) {
       const {
         title,
+        showOnHomepage,
+        mediaSource,
         hasLegacyImage,
         hasLegacyVideo,
         hasLegacyAudio,
@@ -121,7 +157,14 @@ const libraryItem: SchemaTypeDefinition = {
       const hasFile = Boolean(
         hasMedia || hasLegacyImage || hasLegacyVideo || hasLegacyAudio,
       );
+      const flags = [
+        showOnHomepage ? "Homepage" : null,
+        mediaSource === "youtube" ? "YouTube" : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
       const subtitle =
+        flags ||
         (typeof desc === "string" && desc.trim().slice(0, 72)) ||
         (hasFile ? "Has media" : "No media") ||
         "";

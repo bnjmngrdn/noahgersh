@@ -15,14 +15,19 @@
   "dependencies": {
     "@portabletext/react": "^6.0.3",
     "@sanity/image-url": "^2.1.1",
+    "@sanity/orderable-document-list": "^1.5.1",
+    "jszip": "^3.10.1",
     "next": "16.2.4",
     "next-sanity": "^12.3.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sanity-plugin-utils": "^1.8.0"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.10",
     "@sanity/client": "^7.22.0",
+    "@sanity/icons": "^3.7.4",
+    "@sanity/ui": "^3.2.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

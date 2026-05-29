@@ -124,13 +124,6 @@ function libraryDoc(
     },
   };
 
-  if (item.type === "image") {
-    return {
-      ...base,
-      alt: item.alt ?? item.title,
-    };
-  }
-
   return base;
 }
 
@@ -158,6 +151,7 @@ async function main() {
   console.log(`  Tags: ${uniqueTagTitles.size}`);
 
   for (const item of libraryItems) {
+    if (item.type === "youtube") continue;
     const p = publicFilePath(item.src);
     if (!existsSync(p)) {
       console.error(`Missing file: ${p}`);

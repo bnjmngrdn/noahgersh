@@ -1,31 +1,47 @@
-export const libraryQuery = /* groq */ `
-  *[_type == "libraryItem" && defined(slug.current) && !(_id in path("drafts.**"))] | order(_createdAt asc) {
-    "id": slug.current,
-    title,
-    "mime": coalesce(media.asset->mimeType, image.asset->mimeType, videoFile.asset->mimeType, audioFile.asset->mimeType),
-    "src": coalesce(media.asset->url, image.asset->url, videoFile.asset->url, audioFile.asset->url),
-    "type": select(
-      defined(media.asset) => select(
-        string::startsWith(coalesce(media.asset->mimeType, ""), "image/") => "image",
-        string::startsWith(coalesce(media.asset->mimeType, ""), "video/") => "video",
-        string::startsWith(coalesce(media.asset->mimeType, ""), "audio/") => "audio",
-        "image"
-      ),
-      defined(image.asset) => "image",
-      defined(videoFile.asset) => "video",
-      defined(audioFile.asset) => "audio",
+const libraryItemFields = /* groq */ `
+  "id": slug.current,
+  title,
+  "mediaSource": coalesce(mediaSource, "upload"),
+  "youtubeUrl": youtubeUrl,
+  "mime": coalesce(media.asset->mimeType, image.asset->mimeType, videoFile.asset->mimeType, audioFile.asset->mimeType),
+  "src": coalesce(media.asset->url, image.asset->url, videoFile.asset->url, audioFile.asset->url),
+  "type": select(
+    coalesce(mediaSource, "upload") == "youtube" => "youtube",
+    defined(media.asset) => select(
+      string::startsWith(coalesce(media.asset->mimeType, ""), "image/") => "image",
+      string::startsWith(coalesce(media.asset->mimeType, ""), "video/") => "video",
+      string::startsWith(coalesce(media.asset->mimeType, ""), "audio/") => "audio",
       "image"
     ),
-    "alt": coalesce(alt, image.alt),
-    description,
-    "tags": coalesce(tags[]->title, [])
+    defined(image.asset) => "image",
+    defined(videoFile.asset) => "video",
+    defined(audioFile.asset) => "audio",
+    "image"
+  ),
+  "alt": coalesce(alt, image.alt),
+  description,
+  "tags": coalesce(tags[]->title, []),
+  "createdAt": _createdAt,
+  "showOnHomepage": coalesce(showOnHomepage, false)
+`;
+
+export const libraryQuery = /* groq */ `
+  *[_type == "libraryItem" && defined(slug.current) && !(_id in path("drafts.**"))] | order(_createdAt asc) {
+    ${libraryItemFields}
+  }
+`;
+
+export const homepageFeedQuery = /* groq */ `
+  *[_type == "libraryItem" && showOnHomepage == true && defined(slug.current) && !(_id in path("drafts.**"))] | order(_createdAt desc) {
+    ${libraryItemFields}
   }
 `;
 
 export const projectsQuery = /* groq */ `
-  *[_type == "project" && !(_id in path("drafts.**"))] | order(year desc) {
+  *[_type == "project" && !(_id in path("drafts.**"))] | order(orderRank asc, year desc) {
     "id": slug.current,
     "sanityDocumentId": _id,
+    orderRank,
     year,
     artist,
     title,

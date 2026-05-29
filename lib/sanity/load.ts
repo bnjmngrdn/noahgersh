@@ -2,27 +2,41 @@ import type { PortableTextBlock } from "@portabletext/types";
 import { libraryItems as staticLibraryItems } from "@/app/library/_data";
 import type { LibraryItem } from "@/app/library/_data";
 import { projects as staticProjects, defaultProjectModules, type Credit, type InspirationItem, type ListenLink, type Project, type ProjectModules, type Track } from "@/app/projects/_data";
+import { parseYouTubeVideoId } from "@/lib/youtube";
 import { isSanityConfigured, sanityFetch } from "./client";
-import { aboutQuery, libraryQuery, projectsQuery } from "./queries";
+import { aboutQuery, homepageFeedQuery, libraryQuery, projectsQuery } from "./queries";
 
 type RawLibraryRow = {
   id: string;
   title: string;
   type: string;
   src: string | null;
+  youtubeUrl?: string | null;
   alt?: string | null;
   description: string;
   tags: string[];
+  createdAt?: string | null;
+  showOnHomepage?: boolean | null;
 };
 
 function mapLibraryRow(r: RawLibraryRow): LibraryItem | null {
-  if (!r.src) return null;
   const base = {
     id: r.id,
     title: r.title,
-    description: r.description,
+    description: r.description ?? "",
     tags: r.tags ?? [],
+    createdAt: r.createdAt ?? undefined,
+    showOnHomepage: r.showOnHomepage ?? undefined,
   };
+
+  if (r.type === "youtube") {
+    const videoId = parseYouTubeVideoId(r.youtubeUrl ?? "");
+    if (!videoId) return null;
+    return { ...base, type: "youtube", videoId };
+  }
+
+  if (!r.src) return null;
+
   if (r.type === "image") {
     return { ...base, type: "image", src: r.src, alt: r.alt ?? undefined };
   }
@@ -33,6 +47,20 @@ function mapLibraryRow(r: RawLibraryRow): LibraryItem | null {
     return { ...base, type: "audio", src: r.src };
   }
   return null;
+}
+
+function isHomepageFeedItem(item: LibraryItem): item is Extract<
+  LibraryItem,
+  { type: "image" | "youtube" }
+> {
+  return item.type === "image" || item.type === "youtube";
+}
+
+function sortByCreatedAtDesc(items: LibraryItem[]): LibraryItem[] {
+  return [...items].sort(
+    (a, b) =>
+      new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
+  );
 }
 
 type RawProjectRow = {
@@ -96,6 +124,21 @@ export async function getLibraryItems(): Promise<LibraryItem[]> {
   return rows
     .map(mapLibraryRow)
     .filter((x): x is LibraryItem => x !== null);
+}
+
+export async function getHomepageFeedItems(): Promise<
+  Extract<LibraryItem, { type: "image" | "youtube" }>[]
+> {
+  if (!isSanityConfigured()) {
+    return sortByCreatedAtDesc(staticLibraryItems)
+      .filter(isHomepageFeedItem)
+      .filter((item) => item.showOnHomepage);
+  }
+  const rows = await sanityFetch<RawLibraryRow[]>(homepageFeedQuery);
+  return rows
+    .map(mapLibraryRow)
+    .filter((x): x is LibraryItem => x !== null)
+    .filter(isHomepageFeedItem);
 }
 
 export async function getProjects(): Promise<Project[]> {
