@@ -55,26 +55,38 @@ const libraryItem: SchemaTypeDefinition = {
         }),
     },
     {
-      name: "media",
-      title: "Media",
-      type: "file",
+      name: "image",
+      title: "Image",
+      type: "image",
+      options: { hotspot: true },
+      fields: [{ name: "alt", type: "string", title: "Alt text" }],
       description:
-        "Upload an image, video, or audio file. The site picks the player from the file type automatically.",
+        "Upload a photo. Sanity automatically optimizes images for the web (format, size).",
+      hidden: ({ parent }) =>
+        (parent as { mediaSource?: string } | undefined)?.mediaSource === "youtube",
+    },
+    {
+      name: "media",
+      title: "Video or audio",
+      type: "file",
+      description: "Upload a video or audio file.",
       hidden: ({ parent }) =>
         (parent as { mediaSource?: string } | undefined)?.mediaSource === "youtube",
       options: {
-        accept: "image/*,video/*,audio/*",
+        accept: "video/*,audio/*",
       },
       validation: (Rule) =>
         Rule.custom((mediaField, context) => {
           const p = context.parent as Record<string, unknown> | undefined;
           if (p?.mediaSource === "youtube") return true;
-          const hasLegacy =
-            !!(p?.image as { asset?: unknown } | undefined)?.asset ||
-            !!(p?.videoFile as { asset?: unknown } | undefined)?.asset ||
-            !!(p?.audioFile as { asset?: unknown } | undefined)?.asset;
-          if (hasLegacy) return true;
-          return !!mediaField || "Upload a media file";
+          if ((p?.image as { asset?: unknown } | undefined)?.asset) return true;
+          if (
+            (p?.videoFile as { asset?: unknown } | undefined)?.asset ||
+            (p?.audioFile as { asset?: unknown } | undefined)?.asset
+          ) {
+            return true;
+          }
+          return !!mediaField || true;
         }),
     },
     {
@@ -89,14 +101,6 @@ const libraryItem: SchemaTypeDefinition = {
           { title: "Audio", value: "audio" },
         ],
       },
-    },
-    {
-      name: "image",
-      title: "Image (legacy)",
-      type: "image",
-      options: { hotspot: true },
-      fields: [{ name: "alt", type: "string", title: "Alt text" }],
-      hidden: () => true,
     },
     {
       name: "videoFile",

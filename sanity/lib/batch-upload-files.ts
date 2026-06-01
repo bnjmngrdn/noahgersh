@@ -23,6 +23,20 @@ function isMediaFile(file: File): boolean {
   return MEDIA_PATTERN.test(file.name);
 }
 
+export function isImageUploadFile(file: File): boolean {
+  if (file.type.startsWith("image/")) return true;
+  return /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name);
+}
+
+export function isVideoOrAudioUploadFile(file: File): boolean {
+  if (file.type.startsWith("video/") || file.type.startsWith("audio/")) {
+    return true;
+  }
+  return /\.(mov|mp4|m4v|m4a|mp3|wav|aac|webm|avi|mkv|flac|ogg)$/i.test(
+    file.name,
+  );
+}
+
 async function filesFromZip(zipFile: File): Promise<File[]> {
   const zip = await JSZip.loadAsync(zipFile);
   const out: File[] = [];

@@ -1,6 +1,7 @@
-import Image from "next/image";
+import OptimizedImage from "./optimized-image";
 import type { LibraryItem } from "@/app/library/_data";
 import { youtubeEmbedUrl } from "@/lib/youtube";
+import { THUMB_WIDTHS } from "@/lib/sanity/image";
 
 type FeedItem = Extract<LibraryItem, { type: "image" | "youtube" }>;
 
@@ -27,13 +28,16 @@ export default function FeedMedia({
 
   return (
     <div className="relative w-full overflow-hidden bg-black/[0.04]">
-      <Image
+      <OptimizedImage
+        source={item.imageSource}
         src={item.src}
         alt={item.alt ?? item.title}
         width={900}
         height={900}
         className="h-auto w-full"
         sizes="(min-width: 900px) 900px, 100vw"
+        widths={THUMB_WIDTHS}
+        defaultWidth={900}
         priority={priority}
       />
     </div>

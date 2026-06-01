@@ -15,7 +15,7 @@ import {
 } from "@sanity/ui";
 import { useCallback, useEffect, useId, useState, type ChangeEvent } from "react";
 import { useClient } from "sanity";
-import { collectBatchUploadFiles } from "../lib/batch-upload-files";
+import { collectBatchUploadFiles, isImageUploadFile } from "../lib/batch-upload-files";
 import { titleFromFilename, uniqueLibrarySlug } from "../lib/unique-library-slug";
 
 type TagOption = { _id: string; title: string };
@@ -120,23 +120,40 @@ export function LibraryBatchUploadDialog({ open, onClose }: Props) {
 
         const title = titleFromFilename(file.name);
         const slug = await uniqueLibrarySlug(client, title);
-        const asset = await client.assets.upload("file", file, {
-          filename: file.name,
-        });
-
-        await client.create({
-          _type: "libraryItem",
+        const baseDoc = {
+          _type: "libraryItem" as const,
           title,
-          slug: { _type: "slug", current: slug },
+          slug: { _type: "slug" as const, current: slug },
           description: "",
           showOnHomepage: false,
-          mediaSource: "upload",
-          media: {
-            _type: "file",
-            asset: { _type: "reference", _ref: asset._id },
-          },
+          mediaSource: "upload" as const,
           ...(tagRefs.length > 0 ? { tags: tagRefs } : {}),
-        });
+        };
+
+        if (isImageUploadFile(file)) {
+          const asset = await client.assets.upload("image", file, {
+            filename: file.name,
+          });
+          await client.create({
+            ...baseDoc,
+            image: {
+              _type: "image",
+              asset: { _type: "reference", _ref: asset._id },
+              alt: title,
+            },
+          });
+        } else {
+          const asset = await client.assets.upload("file", file, {
+            filename: file.name,
+          });
+          await client.create({
+            ...baseDoc,
+            media: {
+              _type: "file",
+              asset: { _type: "reference", _ref: asset._id },
+            },
+          });
+        }
         created += 1;
       }
 

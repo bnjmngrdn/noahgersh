@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import OptimizedImage from "../../_components/optimized-image";
+import { LIGHTBOX_WIDTH } from "@/lib/sanity/image";
 import type { LibraryItem } from "../_data";
 import { youtubeEmbedUrl } from "@/lib/youtube";
 
@@ -166,11 +168,15 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           <div className="w-full overflow-hidden bg-black/[0.04]">
             {displayItem.type === "image" && (
               <div className="flex max-h-[min(55vh,560px)] w-full items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <OptimizedImage
+                  source={displayItem.imageSource}
                   src={displayItem.src}
                   alt={displayItem.alt ?? displayItem.title}
+                  width={1200}
+                  height={1200}
                   className="max-h-[min(55vh,560px)] w-full object-contain"
+                  sizes="(min-width: 900px) 900px, 100vw"
+                  defaultWidth={LIGHTBOX_WIDTH}
                 />
               </div>
             )}

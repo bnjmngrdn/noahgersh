@@ -108,7 +108,7 @@ async function uploadFile(client: SanityClient, absPath: string, filename: strin
 function libraryDoc(
   item: LibraryItem,
   tagRefs: { _type: "reference"; _ref: string }[],
-  fileAssetId: string,
+  assetId: string,
 ) {
   const _id = `libraryItem.${item.id}`;
   const base = {
@@ -118,13 +118,27 @@ function libraryDoc(
     slug: { _type: "slug" as const, current: item.id },
     description: item.description,
     tags: tagRefs,
-    media: {
-      _type: "file" as const,
-      asset: { _type: "reference" as const, _ref: fileAssetId },
-    },
+    showOnHomepage: item.showOnHomepage ?? false,
   };
 
-  return base;
+  if (item.type === "image") {
+    return {
+      ...base,
+      image: {
+        _type: "image" as const,
+        asset: { _type: "reference" as const, _ref: assetId },
+        alt: item.alt ?? item.title,
+      },
+    };
+  }
+
+  return {
+    ...base,
+    media: {
+      _type: "file" as const,
+      asset: { _type: "reference" as const, _ref: assetId },
+    },
+  };
 }
 
 async function main() {
@@ -163,7 +177,10 @@ async function main() {
       _ref: tagIdByTitle.get(t)!,
     }));
 
-    const asset = await uploadFile(client, p, filename);
+    const asset =
+      item.type === "image"
+        ? await uploadImage(client, p, filename)
+        : await uploadFile(client, p, filename);
     const fileId = asset._id;
 
     const doc = libraryDoc(item, tagRefs, fileId);

@@ -4,21 +4,22 @@ const libraryItemFields = /* groq */ `
   "mediaSource": coalesce(mediaSource, "upload"),
   "youtubeUrl": youtubeUrl,
   "mime": coalesce(media.asset->mimeType, image.asset->mimeType, videoFile.asset->mimeType, audioFile.asset->mimeType),
-  "src": coalesce(media.asset->url, image.asset->url, videoFile.asset->url, audioFile.asset->url),
+  "src": coalesce(image.asset->url, media.asset->url, videoFile.asset->url, audioFile.asset->url),
+  "imageSource": select(defined(image.asset) => image),
   "type": select(
     coalesce(mediaSource, "upload") == "youtube" => "youtube",
+    defined(image.asset) => "image",
     defined(media.asset) => select(
       string::startsWith(coalesce(media.asset->mimeType, ""), "image/") => "image",
       string::startsWith(coalesce(media.asset->mimeType, ""), "video/") => "video",
       string::startsWith(coalesce(media.asset->mimeType, ""), "audio/") => "audio",
       "image"
     ),
-    defined(image.asset) => "image",
     defined(videoFile.asset) => "video",
     defined(audioFile.asset) => "audio",
     "image"
   ),
-  "alt": coalesce(alt, image.alt),
+  "alt": coalesce(image.alt, image.asset->altText),
   description,
   "tags": coalesce(tags[]->title, []),
   "createdAt": _createdAt,
@@ -48,7 +49,8 @@ export const projectsQuery = /* groq */ `
     "artwork": select(
       defined(artwork.asset) => {
         "src": artwork.asset->url,
-        "alt": coalesce(artwork.alt, "")
+        "alt": coalesce(artwork.alt, ""),
+        "imageSource": artwork
       }
     ),
     "modules": {

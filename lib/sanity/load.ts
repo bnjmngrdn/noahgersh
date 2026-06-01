@@ -3,6 +3,7 @@ import { libraryItems as staticLibraryItems } from "@/app/library/_data";
 import type { LibraryItem } from "@/app/library/_data";
 import { projects as staticProjects, defaultProjectModules, type Credit, type InspirationItem, type ListenLink, type Project, type ProjectModules, type Track } from "@/app/projects/_data";
 import { parseYouTubeVideoId } from "@/lib/youtube";
+import type { SanityImageInput } from "@/lib/sanity/image";
 import { isSanityConfigured, sanityFetch } from "./client";
 import { aboutQuery, homepageFeedQuery, libraryQuery, projectsQuery } from "./queries";
 
@@ -11,6 +12,7 @@ type RawLibraryRow = {
   title: string;
   type: string;
   src: string | null;
+  imageSource?: SanityImageInput | null;
   youtubeUrl?: string | null;
   alt?: string | null;
   description: string;
@@ -38,7 +40,13 @@ function mapLibraryRow(r: RawLibraryRow): LibraryItem | null {
   if (!r.src) return null;
 
   if (r.type === "image") {
-    return { ...base, type: "image", src: r.src, alt: r.alt ?? undefined };
+    return {
+      ...base,
+      type: "image",
+      src: r.src,
+      imageSource: r.imageSource ?? undefined,
+      alt: r.alt ?? undefined,
+    };
   }
   if (r.type === "video") {
     return { ...base, type: "video", src: r.src, alt: r.alt ?? undefined };
@@ -70,7 +78,11 @@ type RawProjectRow = {
   artist: string;
   title: string;
   modules?: Partial<ProjectModules> | null;
-  artwork?: { src: string; alt: string } | null;
+  artwork?: {
+    src: string;
+    alt: string;
+    imageSource?: SanityImageInput | null;
+  } | null;
   about: string[] | null;
   tracklist: Track[] | null;
   credits: Credit[] | null;
@@ -109,7 +121,13 @@ function mapProjectRow(r: RawProjectRow): Project | null {
     artist: r.artist,
     title: r.title,
     modules,
-    artwork: r.artwork?.src ? r.artwork : undefined,
+    artwork: r.artwork?.src
+      ? {
+          src: r.artwork.src,
+          alt: r.artwork.alt,
+          imageSource: r.artwork.imageSource ?? undefined,
+        }
+      : undefined,
     about: r.about ?? [],
     tracklist: r.tracklist ?? [],
     credits: r.credits ?? [],

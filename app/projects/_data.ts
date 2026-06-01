@@ -1,3 +1,5 @@
+import type { SanityImageInput } from "@/lib/sanity/image";
+
 export type Track = {
   num: string;
   title: string;
@@ -46,7 +48,11 @@ export type Project = {
   artist: string;
   title: string;
   modules: ProjectModules;
-  artwork?: { src: string; alt: string };
+  artwork?: {
+    src: string;
+    alt: string;
+    imageSource?: SanityImageInput;
+  };
   about: string[];
   tracklist: Track[];
   credits: Credit[];

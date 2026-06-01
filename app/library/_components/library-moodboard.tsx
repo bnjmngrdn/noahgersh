@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import OptimizedImage from "../../_components/optimized-image";
 import {
   LIBRARY_SEARCH_FADE_CLASS,
   matchesLibrarySearch,
@@ -472,7 +473,8 @@ function ItemBlock({
         onClick={onOpen}
       >
         {item.type === "image" && (
-          <Image
+          <OptimizedImage
+            source={item.imageSource}
             src={item.src}
             alt={item.alt ?? item.title}
             fill

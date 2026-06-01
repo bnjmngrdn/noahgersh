@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import OptimizedImage from "../../_components/optimized-image";
+import { THUMB_WIDTHS, type SanityImageInput } from "@/lib/sanity/image";
 import type {
   Credit,
   InspirationItem,
@@ -205,6 +207,7 @@ export default function ProjectRow({
                   <ArtworkSection
                     src={project.artwork.src}
                     alt={project.artwork.alt}
+                    imageSource={project.artwork.imageSource}
                   />
                 ) : (
                   <ArtworkPlaceholder title={project.title} />
@@ -245,17 +248,28 @@ function SectionRule() {
   return <div className="h-px bg-black/15" />;
 }
 
-function ArtworkSection({ src, alt }: { src: string; alt: string }) {
+function ArtworkSection({
+  src,
+  alt,
+  imageSource,
+}: {
+  src: string;
+  alt: string;
+  imageSource?: SanityImageInput;
+}) {
   return (
     <section>
       <SectionLabel>ARTWORK</SectionLabel>
       <div className="relative aspect-square w-full max-w-[260px] overflow-hidden bg-black/5">
-        <Image
+        <OptimizedImage
+          source={imageSource}
           src={src}
           alt={alt}
           fill
           className="object-cover"
           sizes="(max-width: 380px) 100vw, 260px"
+          widths={THUMB_WIDTHS}
+          defaultWidth={520}
         />
       </div>
     </section>
@@ -462,12 +476,15 @@ function InspirationLibraryThumb({ item }: { item: LibraryItem }) {
   if (item.type === "image") {
     return (
       <div className="relative mb-2 aspect-video w-full overflow-hidden bg-black/[0.04]">
-        <Image
+        <OptimizedImage
+          source={item.imageSource}
           src={item.src}
           alt={item.alt ?? item.title}
           fill
           className="object-cover"
           sizes="(min-width: 768px) 220px, 33vw"
+          widths={THUMB_WIDTHS}
+          defaultWidth={640}
         />
       </div>
     );

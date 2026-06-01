@@ -1,3 +1,5 @@
+import type { SanityImageInput } from "@/lib/sanity/image";
+
 export type LibraryItemCommon = {
   id: string;
   title: string;
@@ -11,6 +13,8 @@ export type LibraryItem =
   | (LibraryItemCommon & {
       type: "image";
       src: string;
+      /** Sanity image asset — used for CDN transforms (WebP/AVIF, width caps). */
+      imageSource?: SanityImageInput;
       alt?: string;
     })
   | (LibraryItemCommon & {
