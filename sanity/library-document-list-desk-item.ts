@@ -20,7 +20,9 @@ export function libraryDocumentListDeskItem({
     .schemaType(type)
     .child(
       Object.assign(
-        S.documentTypeList(type).canHandleIntent(() => true).serialize(),
+        S.documentTypeList(type)
+          .canHandleIntent((_intentName, params) => params?.type === type)
+          .serialize(),
         {
         __preserveInstance: true,
         key: "library-items",
