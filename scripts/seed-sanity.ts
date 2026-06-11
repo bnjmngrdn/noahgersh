@@ -234,11 +234,6 @@ async function main() {
         name: c.name,
         roles: c.roles,
       })),
-      listen: (project.listen ?? []).map((l) => ({
-        _key: rndKey(),
-        label: l.label,
-        ...(l.href ? { href: l.href } : {}),
-      })),
       inspiration: inspirationRefs,
     };
 

@@ -8,7 +8,6 @@ type ProjectParent = {
     showAbout?: boolean;
     showTracklist?: boolean;
     showCredits?: boolean;
-    showListen?: boolean;
     showInspiration?: boolean;
   };
 };
@@ -74,12 +73,6 @@ const project: SchemaTypeDefinition = {
           initialValue: false,
         },
         {
-          name: "showListen",
-          title: "Listen",
-          type: "boolean",
-          initialValue: false,
-        },
-        {
           name: "showInspiration",
           title: "Inspiration",
           type: "boolean",
@@ -128,24 +121,6 @@ const project: SchemaTypeDefinition = {
         },
       ],
       hidden: ({ parent }) => !mod(parent)?.showCredits,
-    },
-    {
-      name: "listen",
-      type: "array",
-      of: [
-        {
-          type: "object",
-          fields: [
-            {
-              name: "label",
-              type: "string",
-              validation: (Rule) => Rule.required(),
-            },
-            { name: "href", type: "url" },
-          ],
-        },
-      ],
-      hidden: ({ parent }) => !mod(parent)?.showListen,
     },
     {
       name: "inspiration",

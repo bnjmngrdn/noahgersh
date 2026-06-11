@@ -32,6 +32,7 @@ type LibrarySearchContextValue = {
   inputRef: RefObject<HTMLInputElement | null>;
   setDraftQuery: (next: string) => void;
   submitSearch: () => void;
+  applySearch: (query: string) => void;
   clearSearch: () => void;
   signalGridReady: () => void;
 };
@@ -100,16 +101,26 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const submitSearch = useCallback(() => {
-    const next = draftQuery.trim();
-    if (next === appliedQuery.trim()) return;
-    if (searchPhase === "blank" || searchPhase === "loading") return;
+  const applySearch = useCallback(
+    (query: string) => {
+      const next = query.trim();
+      if (!next) return;
+      if (searchPhase === "blank" || searchPhase === "loading") return;
+      if (next === appliedQuery.trim()) return;
 
-    beginBlankTransition(() => {
-      setAppliedQueryState(next);
-      setGridQueryState(next);
-    });
-  }, [draftQuery, appliedQuery, searchPhase, beginBlankTransition]);
+      beginBlankTransition(() => {
+        draftRef.current = next;
+        setDraftQueryState(next);
+        setAppliedQueryState(next);
+        setGridQueryState(next);
+      });
+    },
+    [appliedQuery, searchPhase, beginBlankTransition],
+  );
+
+  const submitSearch = useCallback(() => {
+    applySearch(draftQuery);
+  }, [draftQuery, applySearch]);
 
   const clearSearch = useCallback(() => {
     if (!draftQuery && !appliedQuery) return;
@@ -148,15 +159,20 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!pathname.startsWith("/library")) return;
 
-    const focusInput = () => {
-      inputRef.current?.focus({ preventScroll: true });
-    };
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q")?.trim();
+    if (!q) return;
 
-    if (window.matchMedia("(min-width: 768px)").matches) {
-      const id = requestAnimationFrame(focusInput);
-      return () => cancelAnimationFrame(id);
-    }
-  }, [pathname]);
+    params.delete("q");
+    const qs = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      qs ? `${pathname}?${qs}` : pathname,
+    );
+
+    applySearch(q);
+  }, [pathname, applySearch]);
 
   useEffect(() => {
     if (!pathname.startsWith("/library")) return;
@@ -206,6 +222,19 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
     clearSearch,
   ]);
 
+  useEffect(() => {
+    if (!pathname.startsWith("/library")) return;
+
+    const focusInput = () => {
+      inputRef.current?.focus({ preventScroll: true });
+    };
+
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      const id = requestAnimationFrame(focusInput);
+      return () => cancelAnimationFrame(id);
+    }
+  }, [pathname]);
+
   const value = useMemo(
     () => ({
       draftQuery,
@@ -216,6 +245,7 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
       inputRef,
       setDraftQuery,
       submitSearch,
+      applySearch,
       clearSearch,
       signalGridReady,
     }),
@@ -227,6 +257,7 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
       isPending,
       setDraftQuery,
       submitSearch,
+      applySearch,
       clearSearch,
       signalGridReady,
     ],

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptimizedImage from "../../_components/optimized-image";
 import {
@@ -64,6 +64,19 @@ function initialAspects(items: LibraryItem[]): (Aspect | null)[] {
   });
 }
 
+/** Update ?open= without triggering a Next.js navigation (avoids server re-shuffle). */
+function replaceOpenParam(pathname: string, id: string | null) {
+  const params = new URLSearchParams(window.location.search);
+  if (id) params.set("open", id);
+  else params.delete("open");
+  const qs = params.toString();
+  window.history.replaceState(
+    null,
+    "",
+    qs ? `${pathname}?${qs}` : pathname,
+  );
+}
+
 export default function LibraryMoodboard({
   items,
   initialOpenLibraryId,
@@ -71,7 +84,6 @@ export default function LibraryMoodboard({
   items: LibraryItem[];
   initialOpenLibraryId?: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const { gridQuery, searchPhase, signalGridReady } = useLibrarySearch();
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -109,8 +121,13 @@ export default function LibraryMoodboard({
   }, [visibleItems]);
 
   useEffect(() => {
-    setLightboxId(idFromOpenParam(initialOpenLibraryId, items));
-  }, [initialOpenLibraryId, items]);
+    const syncFromUrl = () => {
+      const open = new URLSearchParams(window.location.search).get("open");
+      setLightboxId(idFromOpenParam(open ?? undefined, items));
+    };
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [items]);
 
   useEffect(() => {
     if (
@@ -118,22 +135,20 @@ export default function LibraryMoodboard({
       !visibleItems.some((item) => item.id === lightboxId)
     ) {
       setLightboxId(null);
-      router.replace(pathname, { scroll: false });
+      replaceOpenParam(pathname, null);
     }
-  }, [visibleItems, lightboxId, pathname, router]);
+  }, [visibleItems, lightboxId, pathname]);
 
   const openLightbox = (index: number) => {
     const id = visibleItems[index]?.id;
     if (!id) return;
     setLightboxId(id);
-    router.replace(`${pathname}?open=${encodeURIComponent(id)}`, {
-      scroll: false,
-    });
+    replaceOpenParam(pathname, id);
   };
 
   const closeLightbox = () => {
     setLightboxId(null);
-    router.replace(pathname, { scroll: false });
+    replaceOpenParam(pathname, null);
   };
 
   // Observe viewport width → derive columns + item width.

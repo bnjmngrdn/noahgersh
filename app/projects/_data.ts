@@ -13,11 +13,6 @@ export type Credit = {
   roles: string;
 };
 
-export type ListenLink = {
-  label: string;
-  href?: string;
-};
-
 export type InspirationItem = {
   /** Matches `LibraryItem.id` in `app/library/_data.ts` */
   libraryItemId: string;
@@ -29,7 +24,6 @@ export type ProjectModules = {
   showAbout: boolean;
   showTracklist: boolean;
   showCredits: boolean;
-  showListen: boolean;
   showInspiration: boolean;
 };
 
@@ -38,7 +32,6 @@ export const defaultProjectModules: ProjectModules = {
   showAbout: true,
   showTracklist: true,
   showCredits: true,
-  showListen: true,
   showInspiration: true,
 };
 
@@ -56,7 +49,6 @@ export type Project = {
   about: string[];
   tracklist: Track[];
   credits: Credit[];
-  listen: ListenLink[];
   inspiration: InspirationItem[];
 };
 
@@ -79,13 +71,6 @@ const heavenHere: Omit<Project, "id" | "year"> = {
     { name: "BENJAMIN GORDON", roles: "SPIRITUAL GUIDE, ENGINEER" },
     { name: "BIGGIE SMALLS", roles: "EMOTIONAL SUPPORT" },
     { name: "BUDDY GERSH", roles: "ENGINEER, SOURCE INSPIRATION" },
-  ],
-  listen: [
-    { label: "SPOTIFY" },
-    { label: "APPLE MUSIC" },
-    { label: "AMAZON MUSIC" },
-    { label: "YOUTUBE MUSIC" },
-    { label: "DIRECT" },
   ],
   inspiration: [
     { libraryItemId: "img-1166" },

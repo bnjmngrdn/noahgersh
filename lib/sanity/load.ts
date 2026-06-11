@@ -1,7 +1,7 @@
 import type { PortableTextBlock } from "@portabletext/types";
 import { libraryItems as staticLibraryItems } from "@/app/library/_data";
 import type { LibraryItem } from "@/app/library/_data";
-import { projects as staticProjects, defaultProjectModules, type Credit, type InspirationItem, type ListenLink, type Project, type ProjectModules, type Track } from "@/app/projects/_data";
+import { projects as staticProjects, defaultProjectModules, type Credit, type InspirationItem, type Project, type ProjectModules, type Track } from "@/app/projects/_data";
 import { parseYouTubeVideoId } from "@/lib/youtube";
 import type { SanityImageInput } from "@/lib/sanity/image";
 import { isSanityConfigured, sanityFetch } from "./client";
@@ -86,7 +86,6 @@ type RawProjectRow = {
   about: string[] | null;
   tracklist: Track[] | null;
   credits: Credit[] | null;
-  listen: ListenLink[] | null;
   inspiration: InspirationItem[] | null;
 };
 
@@ -112,7 +111,6 @@ function mapProjectRow(r: RawProjectRow): Project | null {
     showAbout: m.showAbout ?? defaultProjectModules.showAbout,
     showTracklist: m.showTracklist ?? defaultProjectModules.showTracklist,
     showCredits: m.showCredits ?? defaultProjectModules.showCredits,
-    showListen: m.showListen ?? defaultProjectModules.showListen,
     showInspiration: m.showInspiration ?? defaultProjectModules.showInspiration,
   };
   return {
@@ -131,7 +129,6 @@ function mapProjectRow(r: RawProjectRow): Project | null {
     about: r.about ?? [],
     tracklist: r.tracklist ?? [],
     credits: r.credits ?? [],
-    listen: r.listen ?? [],
     inspiration,
   };
 }

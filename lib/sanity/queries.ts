@@ -58,7 +58,6 @@ export const projectsQuery = /* groq */ `
       "showAbout": coalesce(modules.showAbout, true),
       "showTracklist": coalesce(modules.showTracklist, true),
       "showCredits": coalesce(modules.showCredits, true),
-      "showListen": coalesce(modules.showListen, true),
       "showInspiration": coalesce(modules.showInspiration, true)
     },
     about,
@@ -72,7 +71,6 @@ export const projectsQuery = /* groq */ `
       []
     ),
     "credits": coalesce(credits, []),
-    "listen": coalesce(listen, []),
     "inspiration": coalesce(
       inspiration[]->{
         "libraryItemId": slug.current

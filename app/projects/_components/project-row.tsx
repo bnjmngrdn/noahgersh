@@ -7,7 +7,6 @@ import { THUMB_WIDTHS, type SanityImageInput } from "@/lib/sanity/image";
 import type {
   Credit,
   InspirationItem,
-  ListenLink,
   Project,
   Track,
 } from "../_data";
@@ -220,9 +219,6 @@ export default function ProjectRow({
               )}
               {project.modules.showCredits && (
                 <CreditsSection credits={project.credits} />
-              )}
-              {project.modules.showListen && (
-                <ListenSection links={project.listen} />
               )}
               {project.modules.showInspiration && (
                 <InspirationSection
@@ -438,33 +434,6 @@ function CreditsSection({ credits }: { credits: Credit[] }) {
           >
             <span className="font-medium">{c.name}</span>
             <span className="text-black/50">{c.roles}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function ListenSection({ links }: { links: ListenLink[] }) {
-  return (
-    <section>
-      <SectionLabel>LISTEN</SectionLabel>
-      <SectionRule />
-      <ul className="pt-2">
-        {links.map((l) => (
-          <li key={l.label} className="py-0.5 font-medium">
-            {l.href ? (
-              <a
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-black/60 transition-colors"
-              >
-                {l.label}
-              </a>
-            ) : (
-              l.label
-            )}
           </li>
         ))}
       </ul>

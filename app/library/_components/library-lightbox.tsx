@@ -1,8 +1,10 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import OptimizedImage from "../../_components/optimized-image";
+import { useLibrarySearch } from "../../_components/library-search";
 import { LIGHTBOX_WIDTH } from "@/lib/sanity/image";
 import type { LibraryItem } from "../_data";
 import { youtubeEmbedUrl } from "@/lib/youtube";
@@ -231,8 +233,8 @@ export default function LibraryLightbox({ item, onClose }: Props) {
             <div className="h-px bg-black/15" />
             <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-4">
               {displayItem.tags.map((tag) => (
-                <li key={tag} className="text-black/60">
-                  {tag}
+                <li key={tag}>
+                  <LibraryTagButton tag={tag} onClose={onClose} />
                 </li>
               ))}
             </ul>
@@ -241,5 +243,34 @@ export default function LibraryLightbox({ item, onClose }: Props) {
       </div>
     </div>,
     document.body,
+  );
+}
+
+function LibraryTagButton({
+  tag,
+  onClose,
+}: {
+  tag: string;
+  onClose: () => void;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { applySearch } = useLibrarySearch();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onClose();
+        if (pathname.startsWith("/library")) {
+          applySearch(tag);
+          return;
+        }
+        router.push(`/library?q=${encodeURIComponent(tag)}`);
+      }}
+      className="text-black/60 transition-colors hover:text-black"
+    >
+      {tag}
+    </button>
   );
 }
