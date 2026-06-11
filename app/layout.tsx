@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AudioPlaybackProvider } from "./_components/audio-playback-provider";
@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   other: {
     "build-sha": process.env.COMMIT_REF ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "dev",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

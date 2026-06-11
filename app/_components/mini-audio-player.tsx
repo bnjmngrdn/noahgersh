@@ -52,7 +52,7 @@ function ControlButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-4 w-4 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-30"
+      className="flex h-11 w-11 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-30"
     >
       {children}
     </button>
@@ -113,7 +113,7 @@ function ScrollingTitle({ title }: { title: string }) {
   );
 }
 
-export default function MiniAudioPlayer() {
+export default function MiniAudioPlayer({ hideTitle = false }: { hideTitle?: boolean }) {
   const {
     currentSrc,
     currentTitle,
@@ -149,7 +149,7 @@ export default function MiniAudioPlayer() {
           <SkipForwardIcon />
         </ControlButton>
       </div>
-      {currentTitle ? <ScrollingTitle title={currentTitle} /> : null}
+      {!hideTitle && currentTitle ? <ScrollingTitle title={currentTitle} /> : null}
     </div>
   );
 }

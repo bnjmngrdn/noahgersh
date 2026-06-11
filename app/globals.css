@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #000000;
+  --site-header-height: 3.75rem;
+  --site-header-height-library-mobile: 5.5rem;
 }
 
 @theme inline {

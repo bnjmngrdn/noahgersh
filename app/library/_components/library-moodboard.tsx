@@ -400,7 +400,7 @@ export default function LibraryMoodboard({
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
         ref={viewportRef}
-        className="relative min-h-0 flex-1 touch-none overflow-hidden overscroll-none bg-white select-none"
+        className="relative min-h-0 flex-1 touch-none overflow-hidden overscroll-none bg-white select-none pt-[var(--site-header-height-library-mobile)] md:pt-[var(--site-header-height)]"
         aria-label="Library moodboard"
       >
         <div

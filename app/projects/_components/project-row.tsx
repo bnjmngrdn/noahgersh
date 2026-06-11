@@ -72,10 +72,12 @@ function TrackPlayhead({
   progress,
   disabled,
   onSeek,
+  className = "",
 }: {
   progress: number;
   disabled: boolean;
   onSeek: (ratio: number) => void;
+  className?: string;
 }) {
   const barRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
@@ -119,9 +121,9 @@ function TrackPlayhead({
       aria-valuenow={Math.round(pct)}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
-      className={`relative flex min-h-1 flex-1 items-center py-1 ${
+      className={`relative flex min-h-11 flex-1 items-center py-2 ${
         disabled ? "pointer-events-none opacity-35" : "cursor-pointer"
-      }`}
+      } ${className}`}
       onPointerDown={(e) => {
         if (disabled) return;
         draggingRef.current = true;
@@ -159,7 +161,7 @@ export default function ProjectRow({
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="relative block w-full py-3 text-left"
+        className="relative block w-full py-3 text-left sm:min-h-11"
       >
         <span className="pointer-events-none absolute left-4 top-3 hidden tabular-nums text-black/60 sm:left-8 md:block">
           {project.year}
@@ -414,13 +416,55 @@ function TracklistRow({
 
   return (
     <li>
-      <div className="grid grid-cols-[1rem_minmax(0,9rem)_minmax(0,1fr)_auto_auto] items-center gap-x-3 py-2 sm:grid-cols-[1rem_13rem_minmax(0,1fr)_auto_auto] sm:gap-x-4">
+      <div className="space-y-2 py-2 sm:hidden">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            disabled={!canPlay}
+            onClick={() => canPlay && toggleSource(url, playlist)}
+            aria-label={playing ? "Pause" : "Play"}
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-35"
+          >
+            {playing ? <PauseIcon /> : <PlayIcon />}
+          </button>
+          <span className="min-w-0 flex-1 truncate font-medium uppercase tracking-[0.02em] text-black">
+            {t.title}
+          </span>
+          <span className="shrink-0 tabular-nums text-black/60">{timeDisplay}</span>
+        </div>
+        <TrackPlayhead
+          progress={progress}
+          disabled={!canPlay || !totalDurationSeconds}
+          onSeek={handleSeek}
+          className="w-full flex-none"
+        />
+        {hasLyrics ? (
+          <button
+            type="button"
+            aria-expanded={lyricsOpen}
+            onClick={() => setLyricsOpen((open) => !open)}
+            className={`inline-flex min-h-11 items-center text-[10px] uppercase tracking-[0.04em] transition-colors ${
+              lyricsOpen
+                ? "text-black/70"
+                : "text-black/35 hover:text-black/55"
+            }`}
+          >
+            [ LYRICS ]
+          </button>
+        ) : (
+          <span className="inline-flex min-h-11 items-center text-[10px] uppercase tracking-[0.04em] text-black/35">
+            [ INSTRUMENTAL ]
+          </span>
+        )}
+      </div>
+
+      <div className="hidden items-center gap-x-4 py-2 sm:grid sm:grid-cols-[1rem_13rem_minmax(0,1fr)_auto_auto]">
         <button
           type="button"
           disabled={!canPlay}
           onClick={() => canPlay && toggleSource(url, playlist)}
           aria-label={playing ? "Pause" : "Play"}
-          className="flex h-4 w-4 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-35"
+          className="flex h-11 w-11 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-35"
         >
           {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
@@ -437,7 +481,7 @@ function TracklistRow({
             type="button"
             aria-expanded={lyricsOpen}
             onClick={() => setLyricsOpen((open) => !open)}
-            className={`shrink-0 text-[10px] uppercase tracking-[0.04em] transition-colors ${
+            className={`inline-flex min-h-11 items-center shrink-0 text-[10px] uppercase tracking-[0.04em] transition-colors ${
               lyricsOpen
                 ? "text-black/70"
                 : "text-black/35 hover:text-black/55"
@@ -446,7 +490,7 @@ function TracklistRow({
             [ LYRICS ]
           </button>
         ) : (
-          <span className="shrink-0 text-[10px] uppercase tracking-[0.04em] text-black/35">
+          <span className="inline-flex min-h-11 items-center shrink-0 text-[10px] uppercase tracking-[0.04em] text-black/35">
             [ INSTRUMENTAL ]
           </span>
         )}
@@ -572,7 +616,7 @@ function InspirationSection({
                 key={insp.libraryItemId}
                 type="button"
                 onClick={() => setLightboxItem(lib)}
-                className="block w-full cursor-pointer text-left transition-opacity hover:opacity-80"
+                className="block w-full min-h-11 cursor-pointer py-1 text-left transition-opacity hover:opacity-80"
               >
                 <InspirationLibraryThumb item={lib} />
                 <div className="text-[11px] tracking-[0.02em] text-black/60">

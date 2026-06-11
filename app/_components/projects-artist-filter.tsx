@@ -96,11 +96,11 @@ export function ProjectsArtistFilter({ className = "" }: { className?: string })
             <button
               type="button"
               onClick={() => setFilter(option.value)}
-              className={
+              className={`inline-flex min-h-11 items-center ${
                 active
                   ? "text-black"
                   : "text-black/30 transition-colors hover:text-black/60"
-              }
+              }`}
               aria-pressed={active}
             >
               {option.label}

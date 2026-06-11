@@ -123,7 +123,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-13"
+      className="fixed inset-0 z-50 flex items-end justify-center px-4 py-4 sm:items-center sm:px-8 sm:py-13"
       role="dialog"
       aria-modal="true"
       aria-label={displayItem.title}
@@ -141,7 +141,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
         onClick={onClose}
       />
       <div
-        className="relative z-10 flex max-h-[min(92vh,900px)] w-full max-w-[900px] flex-col overflow-y-auto border border-black/15 bg-white will-change-[opacity,transform]"
+        className="relative z-10 flex max-h-[min(92dvh,900px)] w-full max-w-[900px] flex-col overflow-y-auto border border-black/15 bg-white will-change-[opacity,transform] sm:max-h-[min(92dvh,900px)]"
         style={{
           ...transitionStyle,
           opacity: visible ? 1 : 0,
@@ -149,18 +149,18 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           pointerEvents: visible ? "auto" : "none",
         }}
       >
-        <div className="flex justify-end px-4 py-3 sm:px-8">
+        <div className="flex justify-end px-4 py-2 sm:px-8 sm:py-3">
           <button
             ref={closeBtnRef}
             type="button"
             onClick={onClose}
-            className="shrink-0 text-[11px] font-medium text-black/30 transition-colors hover:text-black/60"
+            className="flex min-h-11 min-w-11 items-center justify-center text-[11px] font-medium text-black/30 transition-colors hover:text-black/60"
           >
             CLOSE
           </button>
         </div>
 
-        <div className="space-y-14 px-4 pb-13 pt-0 sm:px-8">
+        <div className="space-y-10 px-4 pb-8 pt-0 sm:space-y-14 sm:px-8 sm:pb-13">
           {displayItem.type === "image" && (
             <OptimizedImage
               source={displayItem.imageSource}
@@ -168,7 +168,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
               alt={displayItem.alt ?? displayItem.title}
               width={1200}
               height={1200}
-              className="mx-auto block max-h-[min(55vh,560px)] w-auto max-w-full"
+              className="mx-auto block max-h-[min(50dvh,560px)] w-auto max-w-full sm:max-h-[min(55dvh,560px)]"
               sizes="(min-width: 900px) 900px, 100vw"
               defaultWidth={LIGHTBOX_WIDTH}
             />
@@ -179,7 +179,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
               src={displayItem.src}
               controls
               playsInline
-              className="mx-auto block max-h-[min(55vh,560px)] w-auto max-w-full"
+              className="mx-auto block max-h-[min(50dvh,560px)] w-auto max-w-full sm:max-h-[min(55dvh,560px)]"
               preload="metadata"
             />
           )}
@@ -256,7 +256,7 @@ function LibraryTagButton({
         }
         router.push(`/library?q=${encodeURIComponent(tag)}`);
       }}
-      className="text-black/60 transition-colors hover:text-black"
+      className="inline-flex min-h-11 items-center py-1 text-black/60 transition-colors hover:text-black"
     >
       {tag}
     </button>

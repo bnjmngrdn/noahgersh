@@ -401,7 +401,7 @@ export function LibrarySearchPreview() {
         visible ? "opacity-100" : "opacity-0"
       }`}
     >
-      <p className="max-w-[min(100%,90vw)] text-center text-[60px] font-medium uppercase leading-[0.95] tracking-[0.02em] text-black break-words">
+      <p className="max-w-[min(100%,90vw)] text-center text-[clamp(2rem,12vw,3.75rem)] font-medium uppercase leading-[0.95] tracking-[0.02em] text-black break-words">
         {draftQuery}
       </p>
     </div>
@@ -425,7 +425,7 @@ export function LibrarySearchInput({ className = "" }: { className?: string }) {
       onSubmit={handleSubmit}
       className={`block ${NAV_CENTER_CONTROL_WIDTH_CLASS} ${className}`}
     >
-      <label className={`relative block ${isEmpty ? "cursor-pointer" : ""}`}>
+      <label className={`relative block min-h-11 ${isEmpty ? "cursor-pointer" : ""}`}>
         <span className="sr-only">Search library</span>
         <span
           aria-hidden="true"
@@ -451,7 +451,7 @@ export function LibrarySearchInput({ className = "" }: { className?: string }) {
             setDraftQuery(next);
           }}
           enterKeyHint="search"
-          className={`w-full border-0 bg-transparent pb-1 text-center text-[11px] font-medium uppercase tracking-[0.02em] outline-none ${LIBRARY_SEARCH_FADE_CLASS} ${
+          className={`w-full border-0 bg-transparent py-2 text-center text-[11px] font-medium uppercase tracking-[0.02em] outline-none ${LIBRARY_SEARCH_FADE_CLASS} ${
             isEmpty
               ? "cursor-pointer text-transparent caret-transparent"
               : "text-black caret-black"

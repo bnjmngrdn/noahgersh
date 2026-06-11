@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import { ViewTransition } from "react";
 
-/** Fixed offset below the site header (matches previous layout; avoids drifting paddings). */
+/** Fixed offset below the site header (matches header gradient height). */
 function contentTopPadClass(pathname: string): string {
   if (pathname.startsWith("/studio") || pathname.startsWith("/library")) return "";
-  return "pt-[55px]";
+  return "pt-[var(--site-header-height)]";
 }
 
 export default function PageTransitionBoundary({
