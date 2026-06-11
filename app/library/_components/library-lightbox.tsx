@@ -126,7 +126,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-13"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="library-lightbox-title"
+      aria-label={displayItem.title}
       data-library-lightbox=""
     >
       <button
@@ -149,13 +149,7 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           pointerEvents: visible ? "auto" : "none",
         }}
       >
-        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-black/15 px-4 py-3 sm:gap-6 sm:px-8">
-          <h2
-            id="library-lightbox-title"
-            className="min-w-0 flex-1 break-words text-[12px] font-medium text-black"
-          >
-            {displayItem.title}
-          </h2>
+        <div className="flex justify-end px-4 py-3 sm:px-8">
           <button
             ref={closeBtnRef}
             type="button"
@@ -166,55 +160,49 @@ export default function LibraryLightbox({ item, onClose }: Props) {
           </button>
         </div>
 
-        <div className="space-y-14 px-4 pb-13 pt-6 sm:px-8">
-          <div className="w-full overflow-hidden bg-black/[0.04]">
-            {displayItem.type === "image" && (
-              <div className="flex max-h-[min(55vh,560px)] w-full items-center justify-center">
-                <OptimizedImage
-                  source={displayItem.imageSource}
-                  src={displayItem.src}
-                  alt={displayItem.alt ?? displayItem.title}
-                  width={1200}
-                  height={1200}
-                  className="max-h-[min(55vh,560px)] w-full object-contain"
-                  sizes="(min-width: 900px) 900px, 100vw"
-                  defaultWidth={LIGHTBOX_WIDTH}
-                />
-              </div>
-            )}
-            {displayItem.type === "video" && (
-              <video
-                key={displayItem.src}
-                src={displayItem.src}
-                controls
-                playsInline
-                className="mx-auto max-h-[min(55vh,560px)] w-full object-contain"
-                preload="metadata"
+        <div className="space-y-14 px-4 pb-13 pt-0 sm:px-8">
+          {displayItem.type === "image" && (
+            <OptimizedImage
+              source={displayItem.imageSource}
+              src={displayItem.src}
+              alt={displayItem.alt ?? displayItem.title}
+              width={1200}
+              height={1200}
+              className="mx-auto block max-h-[min(55vh,560px)] w-auto max-w-full"
+              sizes="(min-width: 900px) 900px, 100vw"
+              defaultWidth={LIGHTBOX_WIDTH}
+            />
+          )}
+          {displayItem.type === "video" && (
+            <video
+              key={displayItem.src}
+              src={displayItem.src}
+              controls
+              playsInline
+              className="mx-auto block max-h-[min(55vh,560px)] w-auto max-w-full"
+              preload="metadata"
+            />
+          )}
+          {displayItem.type === "audio" && (
+            <audio
+              key={displayItem.src}
+              src={displayItem.src}
+              controls
+              preload="metadata"
+              className="w-full"
+            />
+          )}
+          {displayItem.type === "youtube" && (
+            <div className="relative aspect-video w-full">
+              <iframe
+                src={youtubeEmbedUrl(displayItem.videoId)}
+                title={displayItem.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full border-0"
               />
-            )}
-            {displayItem.type === "audio" && (
-              <div className="px-0 py-8 sm:px-4">
-                <audio
-                  key={displayItem.src}
-                  src={displayItem.src}
-                  controls
-                  preload="metadata"
-                  className="w-full"
-                />
-              </div>
-            )}
-            {displayItem.type === "youtube" && (
-              <div className="relative aspect-video w-full">
-                <iframe
-                  src={youtubeEmbedUrl(displayItem.videoId)}
-                  title={displayItem.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full border-0"
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <section>
             <div className="pb-2 text-[11px] font-medium uppercase tracking-[0.02em] text-black/50">

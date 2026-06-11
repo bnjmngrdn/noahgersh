@@ -66,6 +66,7 @@ export const projectsQuery = /* groq */ `
         num,
         title,
         duration,
+        lyrics,
         "audioUrl": audioFile.asset->url
       },
       []

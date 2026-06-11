@@ -33,6 +33,14 @@ const projectTrack: SchemaTypeDefinition = {
       type: "string",
       description: 'e.g. "3:45". Usually filled from the audio file.',
     },
+    {
+      name: "lyrics",
+      title: "Lyrics",
+      type: "text",
+      rows: 8,
+      description:
+        "Leave empty for instrumental tracks. Published tracks show [ INSTRUMENTAL ] or [ LYRICS ] on the site.",
+    },
   ],
   preview: {
     select: { title: "title", num: "num", media: "audioFile" },

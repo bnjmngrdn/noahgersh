@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "sanity:seed": "tsx scripts/seed-sanity.ts",
-    "sanity:migrate-images": "tsx scripts/migrate-library-image-assets.ts"
+    "sanity:migrate-images": "tsx scripts/migrate-library-image-assets.ts",
+    "sanity:migrate-remove-listen": "tsx scripts/migrate-remove-listen-fields.ts"
   },
   "dependencies": {
     "@portabletext/react": "^6.0.3",

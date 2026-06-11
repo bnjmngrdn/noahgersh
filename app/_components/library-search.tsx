@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -40,6 +41,24 @@ type LibrarySearchContextValue = {
 const LibrarySearchContext = createContext<LibrarySearchContextValue | null>(
   null,
 );
+
+function readLibrarySearchParam(): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("q")?.trim() ?? "";
+}
+
+function replaceLibrarySearchParam(pathname: string, query: string) {
+  const params = new URLSearchParams(window.location.search);
+  const trimmed = query.trim();
+  if (trimmed) params.set("q", trimmed);
+  else params.delete("q");
+  const qs = params.toString();
+  window.history.replaceState(
+    null,
+    "",
+    qs ? `${pathname}?${qs}` : pathname,
+  );
+}
 
 export function LibrarySearchProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -101,21 +120,57 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const applySearch = useCallback(
-    (query: string) => {
+  const commitSearchState = useCallback(
+    (
+      query: string,
+      { animate = true, syncUrl = true }: { animate?: boolean; syncUrl?: boolean } = {},
+    ) => {
       const next = query.trim();
-      if (!next) return;
-      if (searchPhase === "blank" || searchPhase === "loading") return;
-      if (next === appliedQuery.trim()) return;
+      const unchanged =
+        next === appliedQuery.trim() &&
+        next === draftRef.current.trim() &&
+        next === gridQuery.trim();
 
-      beginBlankTransition(() => {
+      const apply = () => {
         draftRef.current = next;
         setDraftQueryState(next);
         setAppliedQueryState(next);
         setGridQueryState(next);
-      });
+        if (syncUrl && pathname.startsWith("/library")) {
+          replaceLibrarySearchParam(pathname, next);
+        }
+      };
+
+      if (unchanged) {
+        if (syncUrl && pathname.startsWith("/library")) {
+          replaceLibrarySearchParam(pathname, next);
+        }
+        return;
+      }
+
+      if (!animate || searchPhase === "blank" || searchPhase === "loading") {
+        apply();
+        return;
+      }
+
+      beginBlankTransition(apply);
     },
-    [appliedQuery, searchPhase, beginBlankTransition],
+    [
+      appliedQuery,
+      gridQuery,
+      pathname,
+      searchPhase,
+      beginBlankTransition,
+    ],
+  );
+
+  const applySearch = useCallback(
+    (query: string) => {
+      if (!query.trim()) return;
+      if (searchPhase === "blank" || searchPhase === "loading") return;
+      commitSearchState(query, { animate: true, syncUrl: true });
+    },
+    [commitSearchState, searchPhase],
   );
 
   const submitSearch = useCallback(() => {
@@ -125,14 +180,8 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
   const clearSearch = useCallback(() => {
     if (!draftQuery && !appliedQuery) return;
     if (searchPhase === "blank" || searchPhase === "loading") return;
-
-    beginBlankTransition(() => {
-      draftRef.current = "";
-      setDraftQueryState("");
-      setAppliedQueryState("");
-      setGridQueryState("");
-    });
-  }, [draftQuery, appliedQuery, searchPhase, beginBlankTransition]);
+    commitSearchState("", { animate: true, syncUrl: true });
+  }, [draftQuery, appliedQuery, searchPhase, commitSearchState]);
 
   const isPending = useMemo(
     () => draftQuery.trim() !== appliedQuery.trim(),
@@ -156,23 +205,33 @@ export function LibrarySearchProvider({ children }: { children: ReactNode }) {
     }
   }, [isPending, draftQuery, searchPhase]);
 
+  const urlSyncedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!pathname.startsWith("/library")) {
+      urlSyncedRef.current = false;
+      return;
+    }
+    if (urlSyncedRef.current) return;
+    urlSyncedRef.current = true;
+
+    const q = readLibrarySearchParam();
+    if (q) commitSearchState(q, { animate: false, syncUrl: false });
+  }, [pathname, commitSearchState]);
+
   useEffect(() => {
     if (!pathname.startsWith("/library")) return;
 
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get("q")?.trim();
-    if (!q) return;
+    const onPopState = () => {
+      commitSearchState(readLibrarySearchParam(), {
+        animate: false,
+        syncUrl: false,
+      });
+    };
 
-    params.delete("q");
-    const qs = params.toString();
-    window.history.replaceState(
-      null,
-      "",
-      qs ? `${pathname}?${qs}` : pathname,
-    );
-
-    applySearch(q);
-  }, [pathname, applySearch]);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [pathname, commitSearchState]);
 
   useEffect(() => {
     if (!pathname.startsWith("/library")) return;

@@ -6,6 +6,8 @@ export type Track = {
   duration: string;
   /** Sanity CDN URL when an audio file is attached */
   audioUrl?: string | null;
+  /** Plain text; empty means the track is treated as instrumental */
+  lyrics?: string | null;
 };
 
 export type Credit = {
@@ -62,7 +64,12 @@ const heavenHere: Omit<Project, "id" | "year"> = {
     "It\u2019s there right away, in the thicker-stringed guitar and military snare of \u201cPerth,\u201d and \u201cMinnesota, WI.\u201d Anyone who had a single listen to For Emma will peg Justin Vernon\u2019s vocals immediately, but there is a sturdiness \u2013 an insistence \u2013 to Bon Iver, Bon Iver that allows him to escape the cabin in the woods without burning it to the ground. \u201cHolocene\u201d opens with simple finger-picking. The vocal is regret spun hollow and strung on a wire. Then the snare-beat breaks and drives us forward and up and up until we fly silent through the black-star night, our wreckage in view whole atmospheres below. The vocals in \u201cHinnom, TX\u201d ease to the muffled depths, while the instrumentation remains sparse and cosmic. \u201cCalgary\u201d is a worship song to everything For Emma mourned, and at the point in the final track \u201cBeth/Rest\u201d when Vernon sings, \u201cI ain\u2019t livin\u2019 in the dark no more\u201d it is clear he isn\u2019t dancing in the sunshine, but rather shading toward a new light.",
   ],
   tracklist: [
-    { num: "01", title: "PATHBREAKER", duration: "5:49" },
+    {
+      num: "01",
+      title: "PATHBREAKER",
+      duration: "5:49",
+      lyrics: "Cut through the static\nFind the line again\nHeaven here, heaven here",
+    },
     { num: "02", title: "TECHE", duration: "3:20" },
     { num: "03", title: "HIGH WATER 1973", duration: "3:30" },
   ],

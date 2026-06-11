@@ -305,6 +305,17 @@ function trackPlaylist(tracks: Track[]): AudioQueueItem[] {
   });
 }
 
+function trackHasLyrics(track: Track): boolean {
+  return Boolean(track.lyrics?.trim());
+}
+
+function lyricsParagraphs(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+}
+
 function TracklistSection({ tracks }: { tracks: Track[] }) {
   const playlist = trackPlaylist(tracks);
 
@@ -341,6 +352,10 @@ function TracklistRow({
     seekSource,
   } = useAudioPlayback();
   const [durationFromFile, setDurationFromFile] = useState<number | null>(null);
+  const [lyricsOpen, setLyricsOpen] = useState(false);
+
+  const hasLyrics = trackHasLyrics(t);
+  const lyricsText = t.lyrics?.trim() ?? "";
 
   const url = t.audioUrl?.trim() ?? "";
   const canPlay = Boolean(url);
@@ -398,25 +413,66 @@ function TracklistRow({
   );
 
   return (
-    <li className="grid grid-cols-[1rem_minmax(0,9rem)_minmax(0,1fr)_2.5rem] items-center gap-x-3 py-2 sm:grid-cols-[1rem_13rem_minmax(0,1fr)_2.75rem] sm:gap-x-4">
-      <button
-        type="button"
-        disabled={!canPlay}
-        onClick={() => canPlay && toggleSource(url, playlist)}
-        aria-label={playing ? "Pause" : "Play"}
-        className="flex h-4 w-4 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-35"
+    <li>
+      <div className="grid grid-cols-[1rem_minmax(0,9rem)_minmax(0,1fr)_auto_auto] items-center gap-x-3 py-2 sm:grid-cols-[1rem_13rem_minmax(0,1fr)_auto_auto] sm:gap-x-4">
+        <button
+          type="button"
+          disabled={!canPlay}
+          onClick={() => canPlay && toggleSource(url, playlist)}
+          aria-label={playing ? "Pause" : "Play"}
+          className="flex h-4 w-4 shrink-0 items-center justify-center text-black/60 transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-35"
+        >
+          {playing ? <PauseIcon /> : <PlayIcon />}
+        </button>
+        <span className="truncate font-medium uppercase tracking-[0.02em] text-black">
+          {t.title}
+        </span>
+        <TrackPlayhead
+          progress={progress}
+          disabled={!canPlay || !totalDurationSeconds}
+          onSeek={handleSeek}
+        />
+        {hasLyrics ? (
+          <button
+            type="button"
+            aria-expanded={lyricsOpen}
+            onClick={() => setLyricsOpen((open) => !open)}
+            className={`shrink-0 text-[10px] uppercase tracking-[0.04em] transition-colors ${
+              lyricsOpen
+                ? "text-black/70"
+                : "text-black/35 hover:text-black/55"
+            }`}
+          >
+            [ LYRICS ]
+          </button>
+        ) : (
+          <span className="shrink-0 text-[10px] uppercase tracking-[0.04em] text-black/35">
+            [ INSTRUMENTAL ]
+          </span>
+        )}
+        <span className="text-right tabular-nums text-black/60">{timeDisplay}</span>
+      </div>
+      <div
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-[360ms] ease-in-out ${
+          lyricsOpen && hasLyrics ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
       >
-        {playing ? <PauseIcon /> : <PlayIcon />}
-      </button>
-      <span className="truncate font-medium uppercase tracking-[0.02em] text-black">
-        {t.title}
-      </span>
-      <TrackPlayhead
-        progress={progress}
-        disabled={!canPlay || !totalDurationSeconds}
-        onSeek={handleSeek}
-      />
-      <span className="text-right tabular-nums text-black/60">{timeDisplay}</span>
+        <div className="min-h-0 overflow-hidden">
+          <div
+            className={`space-y-4 pt-4 pb-3 transition-[opacity,transform] duration-[360ms] ease-in-out ${
+              lyricsOpen && hasLyrics
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 -translate-y-1 pointer-events-none"
+            }`}
+          >
+            {lyricsParagraphs(lyricsText).map((paragraph, i) => (
+              <p key={i} className="whitespace-pre-wrap">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
     </li>
   );
 }

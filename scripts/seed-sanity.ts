@@ -228,6 +228,7 @@ async function main() {
         num: t.num,
         title: t.title,
         duration: t.duration,
+        ...(t.lyrics?.trim() ? { lyrics: t.lyrics.trim() } : {}),
       })),
       credits: (project.credits ?? []).map((c) => ({
         _key: rndKey(),
